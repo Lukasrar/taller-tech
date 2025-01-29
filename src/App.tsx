@@ -57,6 +57,11 @@ const PaymentDashboard = () => {
         type="number"
         placeholder="Enter target amount"
         onChange={(e) => setTarget(Number(e.target.value))}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+
+          handleCheckTransactions();
+        }}
       />
       <button onClick={handleCheckTransactions}>Check Transactions</button>
       <p>{result}</p>
