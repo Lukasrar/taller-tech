@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface Transaction {
   id: number;
@@ -11,41 +11,70 @@ const defaultTrasactions = [
   { id: 3, amount: 200 },
 ];
 
+const NO_MATCHING_TRANSACTIONS = "No matching transactions found.";
+
 const PaymentDashboard = () => {
   const [transactions, setTransactions] =
     useState<Transaction[]>(defaultTrasactions);
   const [target, setTarget] = useState<number | null>(null);
   const [result, setResult] = useState<string>("");
 
-  const handleCheckTransactions = () => {
-    if (target === null) return;
+  //using string here prevents the number input to show 0, eg: 025
+  const [newTransactionAmount, setNewTransactionAmount] = useState<string>("0");
 
-    for (const transactionA of transactions) {
-      for (const transactionB of transactions) {
-        if (transactionA === transactionB) continue;
+  const handleCheckTransactions = useCallback(
+    (target: number | null) => {
+      if (target === null || transactions.length === 0) return;
 
-        if (transactionA.amount + transactionB.amount === target) {
-          setResult(
-            `Transactions ${transactionA.id} and ${transactionB.id} add up to ${target}`
-          );
+      for (const transactionA of transactions) {
+        for (const transactionB of transactions) {
+          if (transactionA === transactionB) continue;
 
-          return;
+          if (transactionA.amount + transactionB.amount === target) {
+            setResult(
+              `Transactions ${transactionA.id} and ${transactionB.id} add up to ${target}`
+            );
+
+            return;
+          }
         }
       }
+
+      setResult(NO_MATCHING_TRANSACTIONS);
+    },
+    [transactions]
+  );
+
+  const handleAddTransaction = () => {
+    if (
+      transactions.find(
+        (transaction) => transaction.amount === Number(newTransactionAmount)
+      )
+    ) {
+      alert("Transaction has already registred");
+
+      return;
     }
 
-    setResult("No matching transactions found.");
+    setTransactions([
+      ...transactions,
+      { id: new Date().getTime(), amount: Number(newTransactionAmount) },
+    ]);
+
+    setNewTransactionAmount("0");
   };
 
-  const handleAddTransaction = (id: number, amount: number) => {
-    setTransactions([...transactions, { id, amount }]);
-  };
+  useEffect(() => {
+    if (!target) return;
 
-  console.log(target);
+    handleCheckTransactions(target);
+  }, [handleCheckTransactions, target]);
 
   return (
     <div>
       <h1>Payment Transaction Dashboard</h1>
+
+      <p>Your transactions</p>
       <ul>
         {transactions.map((transaction) => (
           <li key={transaction.id}>
@@ -53,18 +82,43 @@ const PaymentDashboard = () => {
           </li>
         ))}
       </ul>
+
+      <p>Enter Target Amount to be Checked</p>
       <input
         type="number"
-        placeholder="Enter target amount"
+        placeholder="target amount"
         onChange={(e) => setTarget(Number(e.target.value))}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
 
-          handleCheckTransactions();
+          handleCheckTransactions(target);
         }}
       />
-      <button onClick={handleCheckTransactions}>Check Transactions</button>
-      <p>{result}</p>
+
+      <br />
+
+      <p>Enter Amount Of The New Transaction </p>
+      <input
+        value={newTransactionAmount}
+        type="number"
+        placeholder="Amount"
+        onChange={(e) => setNewTransactionAmount(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key !== "Enter") return;
+
+          handleAddTransaction();
+        }}
+      />
+      <button onClick={handleAddTransaction}>Create transaction</button>
+
+      <p
+        style={{
+          background: result === NO_MATCHING_TRANSACTIONS ? "red" : "green",
+          color: "white",
+        }}
+      >
+        {result}
+      </p>
     </div>
   );
 };
