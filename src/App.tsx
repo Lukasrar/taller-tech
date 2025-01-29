@@ -5,34 +5,43 @@ interface Transaction {
   amount: number;
 }
 
-const PaymentDashboard: React.FC = () => {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, amount: 50 },
-    { id: 2, amount: 150 },
-    { id: 3, amount: 200 },
-  ]);
+const defaultTrasactions = [
+  { id: 1, amount: 50 },
+  { id: 2, amount: 150 },
+  { id: 3, amount: 200 },
+];
+
+const PaymentDashboard = () => {
+  const [transactions, setTransactions] =
+    useState<Transaction[]>(defaultTrasactions);
   const [target, setTarget] = useState<number | null>(null);
   const [result, setResult] = useState<string>("");
 
   const handleCheckTransactions = () => {
     if (target === null) return;
 
-    for (let i = 0; i < transactions.length; i++) {
-      for (let j = i + 1; j < transactions.length; j++) {
-        if (transactions[i].amount + transactions[j].amount === target) {
+    for (const transactionA of transactions) {
+      for (const transactionB of transactions) {
+        if (transactionA === transactionB) continue;
+
+        if (transactionA.amount + transactionB.amount === target) {
           setResult(
-            `Transactions ${transactions[i].id} and ${transactions[j].id} add up to ${target}`
+            `Transactions ${transactionA.id} and ${transactionB.id} add up to ${target}`
           );
+
           return;
         }
       }
     }
+
     setResult("No matching transactions found.");
   };
 
   const handleAddTransaction = (id: number, amount: number) => {
     setTransactions([...transactions, { id, amount }]);
   };
+
+  console.log(target);
 
   return (
     <div>
